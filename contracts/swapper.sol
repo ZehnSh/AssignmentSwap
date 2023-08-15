@@ -24,7 +24,7 @@ contract swapper {
     uint256 internal _addValueDeadline = 60 seconds;
 
     uint256 firstSwapPercentage = 60;
-    uint256 secondSwapPercentage = 50;
+    uint256 secondSwapPercentage = 40;
 
     constructor(address _kyberRouter, address _IZRouter, address _IWRouter, address _TJRouter) {
         IKRouter = IKyberRouter(_kyberRouter);
@@ -33,11 +33,17 @@ contract swapper {
         ITJRouter = ITraderJoeV2_1(_TJRouter);
     }
 
-    function Swap(uint256 _amounntIn) external payable returns (uint256) {
-        uint256 firstSwapAmount = calculate(_amounntIn, firstSwapPercentage);
+    function Swap() external payable returns (uint256) {
+        require(msg.value > 1 ether, "Insufficient amount");
+        uint256 _amountIn = msg.value;
+        // first 60% swap
+        uint256 firstSwapAmount = calculate(_amountIn, firstSwapPercentage);
+
         uint256 returnKSwap = _swapKyberSwap(firstSwapAmount);
         uint256 returnZSwap = _swapZyberSwap(returnKSwap);
-        uint256 calculateAmountForSecondSwap = _amounntIn - firstSwapAmount;
+
+        // second 40% swap
+        uint256 calculateAmountForSecondSwap = _amountIn - firstSwapAmount;
 
         uint256 secondSwapAmount = calculate(calculateAmountForSecondSwap, secondSwapPercentage);
         uint256 returnWSwap = _swapWoofiV2(secondSwapAmount);
